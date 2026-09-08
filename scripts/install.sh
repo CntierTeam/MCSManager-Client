@@ -148,8 +148,22 @@ fi
 
 if [[ "$VERIFY_SHA" == "1" ]]; then
   if curl -fsSL -o "$tmpdir/$archive.sha256" "$sum_url"; then
-    need sha256sum
-    (cd "$tmpdir" && sha256sum -c "$archive.sha256")
+    (
+      cd "$tmpdir"
+      if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum -c "$archive.sha256"
+      elif command -v shasum >/dev/null 2>&1; then
+        expected="$(awk '{print tolower($1)}' "$archive.sha256")"
+        actual="$(shasum -a 256 "$archive" | awk '{print tolower($1)}')"
+        [[ "$expected" == "$actual" ]] || {
+          echo "error: sha256 mismatch" >&2
+          exit 1
+        }
+        echo "$archive: OK"
+      else
+        echo "warn: no sha256sum/shasum; skip verify" >&2
+      fi
+    )
   else
     echo "warn: checksum file missing; skip verify" >&2
   fi

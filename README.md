@@ -34,6 +34,23 @@ PREFIX=/usr/local curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSMan
 
 本地仓库内也可：`./scripts/install.sh [--continuous|--version vX.Y.Z]`。
 
+### Windows（PowerShell）
+
+默认安装到 `%LOCALAPPDATA%\Programs\mcsm`，并写入用户 PATH：
+
+```powershell
+irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1 | iex
+```
+
+Continuous / 指定版本：
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1))) -Continuous
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1))) -Version v0.1.0
+```
+
+本地：`.\scripts\install.ps1 [-Continuous|-Version vX.Y.Z]`。当前 Release 提供 **windows-amd64**（`mcsm-windows-amd64.zip`）。
+
 ## 要求
 
 - Rust 1.75+（见 [`rust-toolchain.toml`](rust-toolchain.toml)）
