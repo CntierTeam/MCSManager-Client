@@ -11,6 +11,29 @@
 
 预编译包见 [Releases](https://github.com/CntierTeam/MCSManager-Client/releases)：`main` 每次推送更新 **Continuous** 预发布；打 `v*` tag 发布正式版。
 
+## 安装（从 Release 拉取）
+
+一键安装最新**正式版**到 `~/.local/bin`：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash
+```
+
+跟踪 `main` 的 Continuous 构建：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash -s -- --continuous
+```
+
+指定版本 / 安装前缀：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash -s -- --version v0.1.0
+PREFIX=/usr/local curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash
+```
+
+本地仓库内也可：`./scripts/install.sh [--continuous|--version vX.Y.Z]`。
+
 ## 要求
 
 - Rust 1.75+（见 [`rust-toolchain.toml`](rust-toolchain.toml)）
