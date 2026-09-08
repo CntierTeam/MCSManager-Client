@@ -1,0 +1,18 @@
+[package]
+name = "mcsm-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Clap command tree for MCSManager CLI"
+
+[dependencies]
+mcsm-protocol = { workspace = true }
+mcsm-config = { workspace = true }
+mcsm-core = { workspace = true }
+mcsm-daemon = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }

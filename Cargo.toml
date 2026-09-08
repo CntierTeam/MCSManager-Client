@@ -1,0 +1,55 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/mcsm-protocol",
+    "crates/mcsm-config",
+    "crates/mcsm-panel",
+    "crates/mcsm-daemon",
+    "crates/mcsm-core",
+    "crates/mcsm-cli",
+    "crates/mcsm-tui",
+    "bin/mcsm",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-only"
+authors = ["CntierTeam"]
+repository = "https://github.com/CntierTeam/MCSManager-Client"
+
+[workspace.dependencies]
+mcsm-protocol = { path = "crates/mcsm-protocol" }
+mcsm-config = { path = "crates/mcsm-config" }
+mcsm-panel = { path = "crates/mcsm-panel" }
+mcsm-daemon = { path = "crates/mcsm-daemon" }
+mcsm-core = { path = "crates/mcsm-core" }
+mcsm-cli = { path = "crates/mcsm-cli" }
+mcsm-tui = { path = "crates/mcsm-tui" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "io-util", "net", "fs"] }
+async-trait = "0.1"
+thiserror = "2"
+anyhow = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "cookies", "multipart", "stream"] }
+clap = { version = "4", features = ["derive", "env"] }
+ratatui = "0.29"
+crossterm = "0.28"
+directories = "6"
+toml = "0.8"
+uuid = { version = "1", features = ["v4", "serde"] }
+futures = "0.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+bytes = "1"
+tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

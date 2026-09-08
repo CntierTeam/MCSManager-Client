@@ -1,0 +1,19 @@
+[package]
+name = "mcsm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "MCSManager CLI/TUI binary"
+publish = false
+
+[[bin]]
+name = "mcsm"
+path = "src/main.rs"
+
+[dependencies]
+mcsm-cli = { workspace = true }
+mcsm-tui = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing-subscriber = { workspace = true }
