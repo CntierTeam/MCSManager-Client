@@ -371,11 +371,7 @@ async fn send_term_command(app: &mut App, cmd: &str) {
         return;
     };
     match InstanceService(&ctx)
-        .command(
-            &DaemonId::new(daemon),
-            &InstanceUuid::new(uuid),
-            cmd,
-        )
+        .command(&DaemonId::new(daemon), &InstanceUuid::new(uuid), cmd)
         .await
     {
         Ok(_) => app.term_lines.push(format!("> {cmd}")),

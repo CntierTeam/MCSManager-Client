@@ -1,5 +1,5 @@
 use crate::AppContext;
-use mcsm_daemon::{DefaultDaemonClient, DaemonClient, StreamSession};
+use mcsm_daemon::{DaemonClient, DefaultDaemonClient, StreamSession};
 use mcsm_protocol::auth::*;
 use mcsm_protocol::error::McsmResult;
 use mcsm_protocol::files::FileListQuery;
@@ -82,7 +82,11 @@ impl InstanceService<'_> {
     pub async fn list_global(&self, q: &GlobalInstanceQuery) -> McsmResult<Value> {
         self.0.panel.instances_global(q).await
     }
-    pub async fn get(&self, daemon: &DaemonId, uuid: &InstanceUuid) -> McsmResult<mcsm_protocol::instance::Instance> {
+    pub async fn get(
+        &self,
+        daemon: &DaemonId,
+        uuid: &InstanceUuid,
+    ) -> McsmResult<mcsm_protocol::instance::Instance> {
         self.0.panel.instance_detail(daemon, uuid).await
     }
     pub async fn open(&self, daemon: &DaemonId, uuid: &InstanceUuid) -> McsmResult<Value> {
@@ -189,7 +193,12 @@ impl FileService<'_> {
     ) -> McsmResult<Value> {
         self.0.panel.file_touch(daemon, uuid, target).await
     }
-    pub async fn delete(&self, daemon: &DaemonId, uuid: &InstanceUuid, body: &Value) -> McsmResult<Value> {
+    pub async fn delete(
+        &self,
+        daemon: &DaemonId,
+        uuid: &InstanceUuid,
+        body: &Value,
+    ) -> McsmResult<Value> {
         self.0.panel.file_delete(daemon, uuid, body).await
     }
     pub async fn edit(
@@ -306,7 +315,10 @@ impl MarketService<'_> {
 }
 
 impl JavaService<'_> {
-    pub async fn list(&self, daemon: &DaemonId) -> McsmResult<Vec<mcsm_protocol::java::JavaRuntime>> {
+    pub async fn list(
+        &self,
+        daemon: &DaemonId,
+    ) -> McsmResult<Vec<mcsm_protocol::java::JavaRuntime>> {
         self.0.panel.java_list(daemon).await
     }
 }

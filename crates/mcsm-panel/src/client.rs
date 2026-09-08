@@ -110,7 +110,9 @@ impl HttpPanelClient {
             "PATCH" => Ok(Method::PATCH),
             "HEAD" => Ok(Method::HEAD),
             "OPTIONS" => Ok(Method::OPTIONS),
-            other => Err(McsmError::Message(format!("unsupported HTTP method: {other}"))),
+            other => Err(McsmError::Message(format!(
+                "unsupported HTTP method: {other}"
+            ))),
         }
     }
 
@@ -146,9 +148,8 @@ impl HttpPanelClient {
                 message: "empty response".into(),
             });
         }
-        let env: ApiEnvelope<Value> = serde_json::from_str(&text).map_err(|e| {
-            McsmError::Serde(format!("envelope parse failed: {e}; body={text}"))
-        })?;
+        let env: ApiEnvelope<Value> = serde_json::from_str(&text)
+            .map_err(|e| McsmError::Serde(format!("envelope parse failed: {e}; body={text}")))?;
         env.into_result_value()
     }
 
@@ -172,9 +173,7 @@ impl HttpPanelClient {
             Some(b) => Some(serde_json::to_value(b).map_err(|e| McsmError::Serde(e.to_string()))?),
             None => None,
         };
-        let v = self
-            .send_raw(method, path, query, body_v.as_ref())
-            .await?;
+        let v = self.send_raw(method, path, query, body_v.as_ref()).await?;
         serde_json::from_value(v).map_err(|e| McsmError::Serde(e.to_string()))
     }
 }
@@ -494,12 +493,7 @@ impl PanelClient for HttpPanelClient {
             Self::q("upload_dir", upload_dir),
         ];
         let v: Value = self
-            .send_json(
-                Method::POST,
-                "/api/instance/upload",
-                &query,
-                None::<&Value>,
-            )
+            .send_json(Method::POST, "/api/instance/upload", &query, None::<&Value>)
             .await?;
         parse_file_passport(v)
     }
@@ -946,8 +940,7 @@ impl PanelClient for HttpPanelClient {
 
     async fn env_network_modes(&self, daemon: &DaemonId) -> McsmResult<Value> {
         let query = [Self::q("daemonId", daemon.0.clone())];
-        self.get_json("/api/environment/networkModes", &query)
-            .await
+        self.get_json("/api/environment/networkModes", &query).await
     }
 
     async fn env_progress(&self, daemon: &DaemonId) -> McsmResult<ProgressMap> {

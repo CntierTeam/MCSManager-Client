@@ -58,9 +58,8 @@ impl AppContext {
         if let Some(id) = override_id {
             return Ok(id);
         }
-        self.config
-            .default_daemon_id
-            .as_deref()
-            .ok_or_else(|| McsmError::Config("daemon id required (pass --daemon or set default)".into()))
+        self.config.default_daemon_id.as_deref().ok_or_else(|| {
+            McsmError::Config("daemon id required (pass --daemon or set default)".into())
+        })
     }
 }

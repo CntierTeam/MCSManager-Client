@@ -59,11 +59,8 @@ pub trait PanelClient: Send + Sync {
     async fn reconnect_node(&self, uuid: &DaemonId) -> McsmResult<Value>;
 
     // --- Instance admin ---
-    async fn instance_detail(
-        &self,
-        daemon: &DaemonId,
-        uuid: &InstanceUuid,
-    ) -> McsmResult<Instance>;
+    async fn instance_detail(&self, daemon: &DaemonId, uuid: &InstanceUuid)
+        -> McsmResult<Instance>;
     async fn create_instance(&self, daemon: &DaemonId, req: &CreateInstance) -> McsmResult<Value>;
     async fn update_instance(
         &self,
@@ -71,11 +68,8 @@ pub trait PanelClient: Send + Sync {
         uuid: &InstanceUuid,
         req: &UpdateInstance,
     ) -> McsmResult<Value>;
-    async fn delete_instances(
-        &self,
-        daemon: &DaemonId,
-        req: &DeleteInstances,
-    ) -> McsmResult<Value>;
+    async fn delete_instances(&self, daemon: &DaemonId, req: &DeleteInstances)
+        -> McsmResult<Value>;
     async fn multi_open(&self, body: &Value) -> McsmResult<Value>;
     async fn multi_stop(&self, body: &Value) -> McsmResult<Value>;
     async fn multi_kill(&self, body: &Value) -> McsmResult<Value>;

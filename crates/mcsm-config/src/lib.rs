@@ -37,9 +37,8 @@ impl Config {
 }
 
 pub fn config_dir() -> McsmResult<PathBuf> {
-    let dirs = ProjectDirs::from("com", "MCSManager", "mcsm").ok_or_else(|| {
-        McsmError::Config("cannot resolve config directory".into())
-    })?;
+    let dirs = ProjectDirs::from("com", "MCSManager", "mcsm")
+        .ok_or_else(|| McsmError::Config("cannot resolve config directory".into()))?;
     Ok(dirs.config_dir().to_path_buf())
 }
 

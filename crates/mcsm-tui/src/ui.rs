@@ -31,7 +31,10 @@ fn draw_header(f: &mut Frame, area: Rect, app: &App) {
                 .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" "),
-        Span::styled(format!("{:?}", app.screen), Style::default().fg(Color::Yellow)),
+        Span::styled(
+            format!("{:?}", app.screen),
+            Style::default().fg(Color::Yellow),
+        ),
         Span::raw("  "),
         Span::raw(&app.status),
     ]))
@@ -90,7 +93,13 @@ CLI mode: pass any subcommand, e.g. mcsm instance list --global
                 area,
             );
         }
-        Screen::Instances => draw_list(f, area, "instances (daemon\\tuuid\\tname)", &app.instances, app.selected),
+        Screen::Instances => draw_list(
+            f,
+            area,
+            "instances (daemon\\tuuid\\tname)",
+            &app.instances,
+            app.selected,
+        ),
         Screen::Nodes => draw_list(f, area, "nodes", &app.nodes, app.selected),
         Screen::Overview => {
             f.render_widget(

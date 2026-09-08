@@ -13,10 +13,7 @@ pub async fn run() -> Result<()> {
 }
 
 pub async fn run_with_config(cfg: Config) -> Result<()> {
-    let ctx = match AppContext::from_config(cfg.clone()) {
-        Ok(c) => Some(c),
-        Err(_) => None,
-    };
+    let ctx = AppContext::from_config(cfg.clone()).ok();
     app::run_app(ctx, cfg).await
 }
 

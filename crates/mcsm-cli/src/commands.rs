@@ -134,7 +134,9 @@ pub enum AuthCmd {
         enable: bool,
     },
     Bind2fa,
-    Confirm2fa { code: String },
+    Confirm2fa {
+        code: String,
+    },
 }
 
 #[derive(Debug, Clone, Subcommand)]
@@ -150,8 +152,12 @@ pub enum NodeCmd {
         #[arg(long, default_value = "")]
         remarks: String,
     },
-    Rm { uuid: String },
-    Reconnect { uuid: String },
+    Rm {
+        uuid: String,
+    },
+    Reconnect {
+        uuid: String,
+    },
     System,
     Edit {
         uuid: String,
@@ -353,7 +359,9 @@ pub enum UserCmd {
         #[arg(long, default_value_t = 1)]
         permission: i32,
     },
-    Rm { uuid: String },
+    Rm {
+        uuid: String,
+    },
     Update {
         #[arg(long)]
         json_body: String,
@@ -607,8 +615,7 @@ async fn node_cmd(action: NodeCmd, cli: &Cli, json: bool) -> Result<()> {
             let fields: Value = serde_json::from_str(&json_body)?;
             print_result(
                 json,
-                &svc.edit(&DaemonId::new(uuid), &EditNode { fields })
-                    .await?,
+                &svc.edit(&DaemonId::new(uuid), &EditNode { fields }).await?,
             );
         }
     }
@@ -679,8 +686,7 @@ async fn instance_cmd(action: InstanceCmd, cli: &Cli, json: bool) -> Result<()> 
             let d = daemon_id(&ctx, daemon)?;
             print_result(
                 json,
-                &svc.command(&d, &InstanceUuid::new(uuid), &command)
-                    .await?,
+                &svc.command(&d, &InstanceUuid::new(uuid), &command).await?,
             );
         }
         InstanceCmd::Create { daemon, json_body } => {
@@ -688,11 +694,8 @@ async fn instance_cmd(action: InstanceCmd, cli: &Cli, json: bool) -> Result<()> 
             let config: Value = serde_json::from_str(&json_body)?;
             print_result(
                 json,
-                &svc.create(
-                    &d,
-                    &mcsm_protocol::instance::CreateInstance { config },
-                )
-                .await?,
+                &svc.create(&d, &mcsm_protocol::instance::CreateInstance { config })
+                    .await?,
             );
         }
         InstanceCmd::Update {
@@ -747,15 +750,11 @@ async fn instance_cmd(action: InstanceCmd, cli: &Cli, json: bool) -> Result<()> 
             let body = serde_json::json!({ "files": [] });
             print_result(
                 json,
-                &ctx
-                    .panel
+                &ctx.panel
                     .raw(
                         "POST",
                         "/api/protected_instance/process_config/list",
-                        &[
-                            ("daemonId".into(), d.0.clone()),
-                            ("uuid".into(), uuid),
-                        ],
+                        &[("daemonId".into(), d.0.clone()), ("uuid".into(), uuid)],
                         Some(&body),
                     )
                     .await?,
@@ -765,8 +764,7 @@ async fn instance_cmd(action: InstanceCmd, cli: &Cli, json: bool) -> Result<()> 
             let d = daemon_id(&ctx, daemon)?;
             print_result(
                 json,
-                &ctx
-                    .panel
+                &ctx.panel
                     .process_config_get(&d, &InstanceUuid::new(uuid), &file)
                     .await?,
             );
@@ -856,7 +854,10 @@ async fn file_cmd(action: FileCmd, cli: &Cli, json: bool) -> Result<()> {
             daemon,
         } => {
             let d = daemon_id(&ctx, daemon)?;
-            print_result(json, &svc.mkdir(&d, &InstanceUuid::new(uuid), &target).await?);
+            print_result(
+                json,
+                &svc.mkdir(&d, &InstanceUuid::new(uuid), &target).await?,
+            );
         }
         FileCmd::Touch {
             uuid,
@@ -864,7 +865,10 @@ async fn file_cmd(action: FileCmd, cli: &Cli, json: bool) -> Result<()> {
             daemon,
         } => {
             let d = daemon_id(&ctx, daemon)?;
-            print_result(json, &svc.touch(&d, &InstanceUuid::new(uuid), &target).await?);
+            print_result(
+                json,
+                &svc.touch(&d, &InstanceUuid::new(uuid), &target).await?,
+            );
         }
         FileCmd::Rm {
             uuid,
@@ -873,7 +877,10 @@ async fn file_cmd(action: FileCmd, cli: &Cli, json: bool) -> Result<()> {
         } => {
             let d = daemon_id(&ctx, daemon)?;
             let body = serde_json::json!({ "targets": targets });
-            print_result(json, &svc.delete(&d, &InstanceUuid::new(uuid), &body).await?);
+            print_result(
+                json,
+                &svc.delete(&d, &InstanceUuid::new(uuid), &body).await?,
+            );
         }
         FileCmd::Upload {
             uuid,
@@ -1049,10 +1056,7 @@ async fn java_cmd(action: JavaCmd, cli: &Cli, json: bool) -> Result<()> {
                 .raw(
                     "GET",
                     "/api/java_manager/list",
-                    &[
-                        ("daemonId".into(), d.0),
-                        ("instanceId".into(), uuid),
-                    ],
+                    &[("daemonId".into(), d.0), ("instanceId".into(), uuid)],
                     None,
                 )
                 .await?;
@@ -1099,8 +1103,8 @@ async fn exchange_cmd(action: ExchangeCmd, cli: &Cli, json: bool) -> Result<()> 
     let svc = ExchangeService(&ctx);
     match action {
         ExchangeCmd::Call { json_body } => {
-            let body: mcsm_protocol::exchange::ExchangeRequest = serde_json::from_str(&json_body)
-                .with_context(|| "parse exchange body")?;
+            let body: mcsm_protocol::exchange::ExchangeRequest =
+                serde_json::from_str(&json_body).with_context(|| "parse exchange body")?;
             print_result(json, &svc.exchange(&body).await?);
         }
         ExchangeCmd::Redeem { json_body } => {

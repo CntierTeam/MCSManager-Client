@@ -79,10 +79,7 @@ impl StreamSession {
 
     pub async fn resize(&self, cols: u16, rows: u16) -> McsmResult<()> {
         self.client
-            .emit(
-                STREAM_RESIZE,
-                serde_json::json!({ "w": cols, "h": rows }),
-            )
+            .emit(STREAM_RESIZE, serde_json::json!({ "w": cols, "h": rows }))
             .await
     }
 

@@ -94,7 +94,12 @@ impl FilePassport {
             .ok_or_else(|| crate::McsmError::Message("file passport missing password".into()))?;
         let name = file_name.rsplit('/').next().unwrap_or(file_name);
         let name = urlencoding_minimal(name);
-        Ok(format!("{}/download/{}/{}", self.http_base(), password, name))
+        Ok(format!(
+            "{}/download/{}/{}",
+            self.http_base(),
+            password,
+            name
+        ))
     }
 }
 

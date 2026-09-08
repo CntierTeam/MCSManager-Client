@@ -9,6 +9,8 @@
 
 许可证：仓库根目录 [`LICENSE`](LICENSE)（GNU GPLv3）。
 
+预编译包见 [Releases](https://github.com/CntierTeam/MCSManager-Client/releases)：`main` 每次推送更新 **Continuous** 预发布；打 `v*` tag 发布正式版。
+
 ## 要求
 
 - Rust 1.75+（见 [`rust-toolchain.toml`](rust-toolchain.toml)）
