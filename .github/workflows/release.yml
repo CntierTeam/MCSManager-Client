@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -69,11 +73,25 @@ jobs:
             ForEach-Object { "$($_.Hash.ToLower())  $stage.zip" } |
             Out-File -Encoding ascii "$stage.zip.sha256"
 
-      - name: Upload build artifact
+      - name: Upload Unix package
+        if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.artifact }}
-          path: ${{ runner.os == 'Windows' && format('{0}.zip*', matrix.artifact) || format('{0}.tar.gz*', matrix.artifact) }}
+          path: |
+            ${{ matrix.artifact }}.tar.gz
+            ${{ matrix.artifact }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Windows package
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}.zip
+            ${{ matrix.artifact }}.zip.sha256
           if-no-files-found: error
           retention-days: 7
 
