@@ -1,94 +1,219 @@
 ---
 name: mcsmanager-cli
 description: >-
-  Develop and operate the MCSManager-CLI Rust workspace (mcsm binary: TUI with no args, CLI with subcommands).
-  Covers crate contracts (mcsm-protocol/panel/daemon/core/cli/tui), Panel HTTP envelope, Daemon passport stream/upload,
-  local integration testing against MCSManager, and command usage. Trigger on: MCSManager-CLI, mcsm, MCSManager API,
-  Panel/Daemon client, TUI/CLI for MCSManager, .local-mcsm, full_local_test, CONTRACT.md.
-license: MIT
+  Use and operate MCSManager Panel via the `mcsm` binary (TUI with no args, CLI
+  with subcommands). Covers install from Releases, config/API Key, common panel
+  workflows (nodes, instances, power, files, terminal, users, schedules), and
+  TUI keys. Trigger on: mcsm, MCSManager-Client, MCSManager CLI/TUI, Panel API
+  Key, instance open/stop, terminal attach, file ls/upload.
+license: GPL-3.0-only
 metadata:
-  short-description: MCSManager Rust CLI/TUI workspace guide
+  short-description: Operate MCSManager with mcsm CLI/TUI
 ---
 
-# MCSManager-CLI
+# MCSManager Client (`mcsm`) — usage & operations
 
-Rust workspace client for MCSManager Panel + Daemon. Binary name: `mcsm`.
+Operate an [MCSManager](https://github.com/MCSManager/MCSManager) Panel with the
+`mcsm` CLI/TUI. Repo: https://github.com/CntierTeam/MCSManager-Client
 
-## Hard rules
+**This skill is for using the product against a panel — not for developing the Rust crates.**
+Contributors: see the repo `README.md` and `docs/`.
 
-1. **No args → TUI**; **any subcommand → CLI**.
-2. CLI/TUI **must not** call HTTP/WS directly — only through `mcsm-core` services.
-3. Cross-crate types live only in `mcsm-protocol`. Changing a public trait/DTO requires updating `docs/CONTRACT.md`.
-4. Prefer API Key auth (`X-Request-Api-Key` + `?apikey=`). Session token is secondary.
-5. Code and comments in English; user-facing agent replies follow the user's language.
+## When to use
 
-## Workspace map
+Trigger when the user wants to:
 
-| Crate | Role |
-|-------|------|
-| `mcsm-protocol` | Envelope, IDs, DTOs, stream constants |
-| `mcsm-panel` | `PanelClient` / `HttpPanelClient` → `/api/*` |
-| `mcsm-daemon` | Socket.IO stream + passport HTTP transfer |
-| `mcsm-config` | `~/.config/mcsm/config.toml` |
-| `mcsm-core` | Domain services shared by CLI/TUI |
-| `mcsm-cli` | clap commands |
-| `mcsm-tui` | ratatui UI |
-| `bin/mcsm` | Entry |
+- Install or upgrade `mcsm`
+- Point `mcsm` at a Panel URL and API Key
+- List / start / stop / restart instances, manage nodes, files, schedules
+- Attach to instance console (`terminal attach` or TUI)
+- Manage users, settings, market, audit, Java/mod/env helpers
 
-Panel envelope: `{ "status": 200, "data": ..., "time": <ms> }`.
+## Hard rules (agent)
 
-File passport from Panel is `{ password, addr, prefix? }` — build URLs via `FilePassport::upload_url` / `download_url` (add `http://` when missing).
+1. **No args → TUI**; **any subcommand → CLI**. Prefer CLI + `--json` for automation.
+2. **Do not invent flags or endpoints.** Truth: `mcsm <cmd> --help` and [references/cli.md](references/cli.md).
+3. Prefer **`--json`** for machine-readable output; parse that instead of guessing fields.
+4. Prefer **API Key** auth (`mcsm config set-key`). Session login is secondary.
+5. Many instance/file/terminal commands need **`--daemon <daemonId>`** (or a default via `mcsm config set-daemon`).
+6. **Secrets:** never echo full API keys into chat logs, commit messages, or pasted history. Prefer `mcsm config set-key` once. If a one-shot `--apikey` is required, redact in summaries.
+7. Destructive actions (`instance kill|rm`, `file rm`, user delete) — confirm intent when ambiguous.
+8. User-facing replies follow the user's language.
+
+## Install
+
+Binary name: `mcsm`. Prebuilts: [Releases](https://github.com/CntierTeam/MCSManager-Client/releases)
+(`main` pushes update **Continuous** pre-release; `v*` tags = stable).
+
+### Linux / macOS
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash
+```
+
+Continuous / pin:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash -s -- --continuous
+curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash -s -- --version v0.1.0
+PREFIX=/usr/local curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash
+```
+
+Ensure `~/.local/bin` (or `$PREFIX/bin`) is on `PATH`, then:
+
+```bash
+command -v mcsm && mcsm --help
+```
+
+### Windows (PowerShell)
+
+Default: `%LOCALAPPDATA%\Programs\mcsm` (+ user PATH):
+
+```powershell
+irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1 | iex
+```
+
+Continuous / pin:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1))) -Continuous
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1))) -Version v0.1.0
+```
+
+Asset: **windows-amd64**.
+
+## Config
+
+Default file: `~/.config/mcsm/config.toml`
+
+```bash
+mcsm config set-url http://127.0.0.1:23333
+mcsm config set-key YOUR_API_KEY
+mcsm config set-daemon DAEMON_UUID   # optional default node
+mcsm config show
+mcsm config path
+```
+
+Overrides:
+
+| Flag | Env | Used for |
+|------|-----|----------|
+| `--url` | `MCSM_URL` | Panel base URL |
+| `--apikey` | `MCSM_APIKEY` | Panel API Key |
+| `--json` | — | JSON output |
+| `--config` | — | Alternate config path |
+
+One-shot:
+
+```bash
+mcsm --url http://panel.example.com --apikey KEY --json overview
+```
+
+Auth details: [references/auth.md](references/auth.md).
 
 ## Common workflows
 
-### Build / run
+### Check panel / overview
 
 ```bash
-cargo build -p mcsm
-./target/debug/mcsm --help
-./target/debug/mcsm          # TUI
+mcsm auth status --json
+mcsm overview --json
+mcsm node list --json
 ```
 
-### Configure against a Panel
+### Instances & power
 
 ```bash
-mcsm config set-url http://127.0.0.1:33333
-mcsm config set-key <APIKEY>
-mcsm config set-daemon <daemonId>
+mcsm instance list --global --json
+mcsm instance get <uuid> --daemon <daemonId> --json
+mcsm instance open <uuid> --daemon <daemonId>
+mcsm instance stop <uuid> --daemon <daemonId>
+mcsm instance restart <uuid> --daemon <daemonId>
+mcsm instance kill <uuid> --daemon <daemonId>
+mcsm instance cmd <uuid> --daemon <daemonId> "list"
 ```
 
-Or one-shot: `mcsm --url ... --apikey ... --json <cmd>`.
-
-### Local full integration test
-
-Project ships a disposable MCSManager under `.local-mcsm/` (gitignored) and:
+### Console
 
 ```bash
-./scripts/full_local_test.sh
+mcsm terminal attach <uuid> --daemon <daemonId>
+mcsm terminal log <uuid> --daemon <daemonId>
 ```
 
-Expect many PASS; known skips:
-- **file-upload**: MCSManager 10.18.1 webpack+formidable packaging bug (`plugins/octetstream.js`)
-- **env-images / env-containers**: no Docker on host
+### Files
 
-When testing schedule interval tasks, `time` must be **≥ 3** seconds.
+```bash
+mcsm file ls <uuid> --target /
+mcsm file mkdir <uuid> --target /plugins
+mcsm file upload <uuid> --target /plugins --local ./plugin.jar
+mcsm file download <uuid> --target /server.properties --local ./server.properties
+mcsm file rm <uuid> --target /old.txt
+```
 
-### Extending API coverage
+### Schedules
 
-1. Add DTO in `mcsm-protocol` if needed.
-2. Add method on `mcsm-panel::PanelClient` + `HttpPanelClient` (mirror `IdeaProjects/MCSManager/panel/src/app/routers/*`).
-3. Wire `mcsm-core` service.
-4. Expose clap subcommand in `mcsm-cli` and/or TUI screen.
-5. Update `docs/CONTRACT.md` and `docs/FEATURE_PARITY.md`.
+```bash
+mcsm schedule list <uuid> --daemon <daemonId>
+# interval tasks: --time must be ≥ 3 (seconds)
+mcsm schedule add <uuid> --name t --time 5 --action command --payload list --type-code 1 --count 1
+mcsm schedule rm <uuid> --name t
+```
 
-Truth sources for routes: MCSManager `panel/src/app/routers/*` and `frontend/src/services/apis/*`.
+### Users / settings / audit
 
-## Parallel / subagent work
+```bash
+mcsm user list --json
+mcsm settings get --json
+mcsm audit recent --json
+```
 
-After S0 contract freeze: change only your crate. Do not edit another crate's internals. Protocol-breaking changes must be explicit and documented.
+### Market / Java / mods / Docker env
+
+```bash
+mcsm market list --json
+mcsm java list <uuid> --daemon <daemonId>
+mcsm mod search <query>
+mcsm env images --daemon <daemonId>
+mcsm env containers --daemon <daemonId>
+```
+
+## TUI
+
+```bash
+mcsm
+```
+
+| Key | Action |
+|-----|--------|
+| `1` | Instances |
+| `2` | Nodes |
+| `3` | Overview |
+| `4` | Users |
+| `5` | Settings |
+| `h` / `?` | Help |
+| `0` | Home |
+| `j` / `k` or arrows | Move |
+| `r` | Refresh |
+| Enter (Instances) | Open terminal view |
+| `o` / `s` (Instances) | Open / stop |
+| `q` | Quit (not in terminal) |
+| Esc (Terminal) | Back |
+
+Live streaming console is more reliable via `mcsm terminal attach`.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Not configured / empty overview | Missing URL or key | `mcsm config set-url` + `set-key` |
+| 401 / 403 | Bad or disabled API Key | Panel → user API Key; `mcsm auth status` |
+| Commands need daemon | No default node | `--daemon <id>` or `mcsm config set-daemon` |
+| Schedule add rejected | Interval `< 3` | Use `--time` ≥ 3 |
+| `mcsm` not found | PATH | Add `~/.local/bin` or Windows install dir |
 
 ## References
 
-- Full crate API map: [references/contract.md](references/contract.md)
-- CLI command tree: [references/cli.md](references/cli.md)
-- Project docs: `docs/CONTRACT.md`, `docs/FEATURE_PARITY.md`, `README.md`
+- Command tree & examples: [references/cli.md](references/cli.md)
+- Auth / config: [references/auth.md](references/auth.md)
+- Upstream panel: https://github.com/MCSManager/MCSManager
+- This client: https://github.com/CntierTeam/MCSManager-Client

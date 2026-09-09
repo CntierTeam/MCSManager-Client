@@ -1,3 +1,6 @@
-display_name: MCSManager CLI
-short_description: Rust CLI/TUI client for MCSManager Panel & Daemon
-default_prompt: Follow the mcsmanager-cli skill for this MCSManager-CLI workspace — respect crate contracts, use mcsm-core for IO, and prefer API Key auth.
+display_name: MCSManager Client
+short_description: Use mcsm CLI/TUI to operate an MCSManager Panel
+default_prompt: >-
+  Follow the mcsmanager-cli skill for product usage of `mcsm` (install, config,
+  API Key, instances/files/terminal). Prefer CLI + --json. Do not treat this as
+  a Rust development guide.

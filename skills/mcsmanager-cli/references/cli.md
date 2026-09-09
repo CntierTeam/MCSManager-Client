@@ -21,10 +21,12 @@ mcsm config show|set-url|set-key|set-daemon|path
 
 Global flags: `--url`, `--apikey`, `--json`, `--config`.
 
+Env: `MCSM_URL`, `MCSM_APIKEY`.
+
 ## Examples
 
 ```bash
-mcsm --url http://127.0.0.1:33333 --apikey KEY overview --json
+mcsm --url http://127.0.0.1:23333 --apikey KEY overview --json
 mcsm instance list --global --json
 mcsm instance open <uuid> --daemon <daemonId>
 mcsm terminal attach <uuid> --daemon <daemonId>
@@ -32,4 +34,6 @@ mcsm file ls <uuid> --target /
 mcsm schedule add <uuid> --name t --time 5 --action command --payload list --type-code 1 --count 1
 ```
 
-Schedule interval (`type=1`): `time` must be ≥ 3 seconds.
+Schedule interval (`type-code` / type `1`): `time` must be **≥ 3** seconds.
+
+When unsure of flags: `mcsm <command> --help` — do not invent options.

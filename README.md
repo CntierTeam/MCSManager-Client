@@ -146,7 +146,7 @@ mcsm auth status
 
 ## Codex Skill
 
-项目内 skill：[`skills/mcsmanager-cli/`](skills/mcsmanager-cli/)
+项目内 skill：[`skills/mcsmanager-cli/`](skills/mcsmanager-cli/)（**产品用法**：安装 / 配置 / 常用命令，不是开发文档）。
 
 ```bash
 ./scripts/install-codex-skill.sh        # 复制到 ~/.codex/skills/mcsmanager-cli
