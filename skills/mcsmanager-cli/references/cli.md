@@ -1,5 +1,7 @@
 # CLI command tree
 
+Skill 为 execute-first 操作员代跑；本文件是准确命令树备查，不是替代 shell 执行。
+
 ```text
 mcsm auth login|logout|whoami|status|apikey|bind2fa|confirm2fa
 mcsm overview

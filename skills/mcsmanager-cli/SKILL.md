@@ -1,219 +1,123 @@
 ---
 name: mcsmanager-cli
 description: >-
-  Use and operate MCSManager Panel via the `mcsm` binary (TUI with no args, CLI
-  with subcommands). Covers install from Releases, config/API Key, common panel
-  workflows (nodes, instances, power, files, terminal, users, schedules), and
-  TUI keys. Trigger on: mcsm, MCSManager-Client, MCSManager CLI/TUI, Panel API
-  Key, instance open/stop, terminal attach, file ls/upload.
+  Operate MCSManager Panel via the `mcsm` binary by running it for the user
+  (TUI with no args, CLI with subcommands). Covers install from Releases,
+  config/API Key, common panel workflows (nodes, instances, power, files,
+  terminal, users, schedules), and TUI keys. Prefer shell execution over
+  pasting recipes. Trigger on: mcsm, MCSManager-Client, MCSManager CLI/TUI,
+  Panel API Key, instance open/stop, terminal attach, file ls/upload.
 license: GPL-3.0-only
 metadata:
-  short-description: Operate MCSManager with mcsm CLI/TUI
+  short-description: 代跑 mcsm（面板实例/文件/终端）
 ---
 
-# MCSManager Client (`mcsm`) — usage & operations
+# MCSManager Client (`mcsm`)
 
-Operate an [MCSManager](https://github.com/MCSManager/MCSManager) Panel with the
-`mcsm` CLI/TUI. Repo: https://github.com/CntierTeam/MCSManager-Client
+产品：**`mcsm`** — [MCSManager](https://github.com/MCSManager/MCSManager) Panel 的 CLI/TUI 客户端。
 
-**This skill is for using the product against a panel — not for developing the Rust crates.**
-Contributors: see the repo `README.md` and `docs/`.
+你是 **操作员**：用户要装客户端、配面板、列节点/实例、开关机、管文件、挂终端、管用户/计划任务 → **自己在 shell 执行 `mcsm`**，不要只拼命令给用户。
 
-## When to use
+本 skill 是 **execute-first**：代跑产品，不是开发 Rust crates。细节命令树见 [references/cli.md](references/cli.md)；鉴权见 [references/auth.md](references/auth.md)。
 
-Trigger when the user wants to:
+Repo: https://github.com/CntierTeam/MCSManager-Client
 
-- Install or upgrade `mcsm`
-- Point `mcsm` at a Panel URL and API Key
-- List / start / stop / restart instances, manage nodes, files, schedules
-- Attach to instance console (`terminal attach` or TUI)
-- Manage users, settings, market, audit, Java/mod/env helpers
+## Agent 硬规则
 
-## Hard rules (agent)
+1. **执行优先**：能跑就跑。二进制：`mcsm` 或 `~/.local/bin/mcsm`；没有就先装（见下方 Install）。
+2. **禁止**用「组装指令 / 操作手册 / SAMPLE / YOUR_CLI / 长篇理科说明」代替执行。短句说明 → 立刻跑 → 根据输出继续。
+3. **无参数 → TUI**；**有子命令 → CLI**。Agent 代控优先 **CLI + `--json`**；用户明确要全屏 UI 再开 `mcsm`。
+4. 命令名永远 **`mcsm`**，禁止 `SAMPLE` / `YOUR_CLI`。缺 URL、API Key、daemonId、实例 UUID 时只问缺的那一项，问完继续跑。
+5. **不要发明 flags/endpoints**。不确定就跑 `mcsm <cmd> --help`，以输出和 [references/cli.md](references/cli.md) 为准。
+6. 优先 **API Key**（`mcsm config set-key`）；session login 次要。许多 instance/file/terminal 命令需要 `--daemon <daemonId>`（或 `mcsm config set-daemon`）。
+7. **Secrets**：不回显完整 API Key；优先一次性写入 config。破坏性操作（`instance kill|rm`、`file rm`、删用户）意图不清时先确认。
+8. Mock/自测仅在用户明确要求或本机无面板可达时；真机意图就真跑 Panel。
 
-1. **No args → TUI**; **any subcommand → CLI**. Prefer CLI + `--json` for automation.
-2. **Do not invent flags or endpoints.** Truth: `mcsm <cmd> --help` and [references/cli.md](references/cli.md).
-3. Prefer **`--json`** for machine-readable output; parse that instead of guessing fields.
-4. Prefer **API Key** auth (`mcsm config set-key`). Session login is secondary.
-5. Many instance/file/terminal commands need **`--daemon <daemonId>`** (or a default via `mcsm config set-daemon`).
-6. **Secrets:** never echo full API keys into chat logs, commit messages, or pasted history. Prefer `mcsm config set-key` once. If a one-shot `--apikey` is required, redact in summaries.
-7. Destructive actions (`instance kill|rm`, `file rm`, user delete) — confirm intent when ambiguous.
-8. User-facing replies follow the user's language.
-
-## Install
-
-Binary name: `mcsm`. Prebuilts: [Releases](https://github.com/CntierTeam/MCSManager-Client/releases)
-(`main` pushes update **Continuous** pre-release; `v*` tags = stable).
-
-### Linux / macOS
+## 标准代跑流
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash
-```
-
-Continuous / pin:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash -s -- --continuous
-curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash -s -- --version v0.1.0
-PREFIX=/usr/local curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash
-```
-
-Ensure `~/.local/bin` (or `$PREFIX/bin`) is on `PATH`, then:
-
-```bash
-command -v mcsm && mcsm --help
-```
-
-### Windows (PowerShell)
-
-Default: `%LOCALAPPDATA%\Programs\mcsm` (+ user PATH):
-
-```powershell
-irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1 | iex
-```
-
-Continuous / pin:
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1))) -Continuous
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.ps1))) -Version v0.1.0
-```
-
-Asset: **windows-amd64**.
-
-## Config
-
-Default file: `~/.config/mcsm/config.toml`
-
-```bash
-mcsm config set-url http://127.0.0.1:23333
-mcsm config set-key YOUR_API_KEY
-mcsm config set-daemon DAEMON_UUID   # optional default node
-mcsm config show
-mcsm config path
-```
-
-Overrides:
-
-| Flag | Env | Used for |
-|------|-----|----------|
-| `--url` | `MCSM_URL` | Panel base URL |
-| `--apikey` | `MCSM_APIKEY` | Panel API Key |
-| `--json` | — | JSON output |
-| `--config` | — | Alternate config path |
-
-One-shot:
-
-```bash
-mcsm --url http://panel.example.com --apikey KEY --json overview
-```
-
-Auth details: [references/auth.md](references/auth.md).
-
-## Common workflows
-
-### Check panel / overview
-
-```bash
+command -v mcsm || ~/.local/bin/mcsm --help
+mcsm config show || true
 mcsm auth status --json
 mcsm overview --json
 mcsm node list --json
-```
-
-### Instances & power
-
-```bash
 mcsm instance list --global --json
-mcsm instance get <uuid> --daemon <daemonId> --json
-mcsm instance open <uuid> --daemon <daemonId>
-mcsm instance stop <uuid> --daemon <daemonId>
-mcsm instance restart <uuid> --daemon <daemonId>
-mcsm instance kill <uuid> --daemon <daemonId>
-mcsm instance cmd <uuid> --daemon <daemonId> "list"
 ```
 
-### Console
+未配置则先：
 
 ```bash
-mcsm terminal attach <uuid> --daemon <daemonId>
-mcsm terminal log <uuid> --daemon <daemonId>
+mcsm config set-url 'http://127.0.0.1:23333'   # 换成用户的 Panel URL
+mcsm config set-key '<API_KEY>'                 # 不回显到对话摘要
+mcsm config set-daemon '<DAEMON_UUID>'          # 可选默认节点
 ```
 
-### Files
+## 意图 → 怎么跑
+
+| 用户意图 | 执行 |
+|----------|------|
+| 装 / 升级客户端 | 跑下方 install 脚本，再 `mcsm --help` |
+| 配 URL / Key | `config set-url` / `set-key` / `show` / `auth status --json` |
+| 看总览 / 节点 | `overview --json`；`node list\|add\|edit\|rm\|reconnect\|system` |
+| 列实例 / 查详情 | `instance list --global --json`；`instance get <uuid> --daemon <id> --json` |
+| 开 / 停 / 重启 / 强杀 | `instance open\|stop\|restart\|kill <uuid> --daemon <id>` |
+| 发控制台命令 | `instance cmd <uuid> --daemon <id> "list"` |
+| 挂终端 / 看日志 | `terminal attach\|log <uuid> --daemon <id>`（流式控制台优先 attach） |
+| 文件 | `file ls\|mkdir\|touch\|rm\|upload\|download`（要 `--target` / `--local`） |
+| 计划任务 | `schedule list\|add\|rm`（interval：`--time` ≥ 3 秒） |
+| 用户 / 设置 / 审计 | `user …`；`settings get\|set`；`audit recent\|search --json` |
+| 市场 / Java / mod / Docker | `market`；`java list`；`mod search`；`env images\|containers` |
+| 要 TUI | 启动无参 `mcsm`，并告知键位 |
+
+## Install（仅当本机没有 mcsm）
+
+Prebuilts: [Releases](https://github.com/CntierTeam/MCSManager-Client/releases)（`main` → Continuous；`v*` → 正式版）。
 
 ```bash
-mcsm file ls <uuid> --target /
-mcsm file mkdir <uuid> --target /plugins
-mcsm file upload <uuid> --target /plugins --local ./plugin.jar
-mcsm file download <uuid> --target /server.properties --local ./server.properties
-mcsm file rm <uuid> --target /old.txt
+curl -fsSL https://raw.githubusercontent.com/CntierTeam/MCSManager-Client/main/scripts/install.sh | bash
+# Continuous / pin:
+# bash -s -- --continuous
+# bash -s -- --version v0.1.0
+command -v mcsm && mcsm --help
 ```
 
-### Schedules
+Windows（PowerShell）：`irm …/install.ps1 | iex`（asset: **windows-amd64**）。
 
-```bash
-mcsm schedule list <uuid> --daemon <daemonId>
-# interval tasks: --time must be ≥ 3 (seconds)
-mcsm schedule add <uuid> --name t --time 5 --action command --payload list --type-code 1 --count 1
-mcsm schedule rm <uuid> --name t
-```
+## Config 速查
 
-### Users / settings / audit
+默认：`~/.config/mcsm/config.toml`（`mcsm config path`）。
 
-```bash
-mcsm user list --json
-mcsm settings get --json
-mcsm audit recent --json
-```
+| Flag | Env | 用途 |
+|------|-----|------|
+| `--url` | `MCSM_URL` | Panel base URL |
+| `--apikey` | `MCSM_APIKEY` | API Key |
+| `--json` | — | JSON 输出 |
+| `--config` | — | 另一份 config |
 
-### Market / Java / mods / Docker env
+One-shot：`mcsm --url http://panel.example.com --apikey KEY --json overview`
 
-```bash
-mcsm market list --json
-mcsm java list <uuid> --daemon <daemonId>
-mcsm mod search <query>
-mcsm env images --daemon <daemonId>
-mcsm env containers --daemon <daemonId>
-```
-
-## TUI
-
-```bash
-mcsm
-```
+## TUI 键位（用户自己玩时）
 
 | Key | Action |
 |-----|--------|
-| `1` | Instances |
-| `2` | Nodes |
-| `3` | Overview |
-| `4` | Users |
-| `5` | Settings |
+| `1`–`5` | Instances / Nodes / Overview / Users / Settings |
 | `h` / `?` | Help |
 | `0` | Home |
-| `j` / `k` or arrows | Move |
+| `j`/`k` 或方向键 | Move |
 | `r` | Refresh |
-| Enter (Instances) | Open terminal view |
-| `o` / `s` (Instances) | Open / stop |
-| `q` | Quit (not in terminal) |
-| Esc (Terminal) | Back |
-
-Live streaming console is more reliable via `mcsm terminal attach`.
+| Enter（Instances） | 打开终端视图 |
+| `o` / `s` | Open / stop |
+| `q` | Quit（非终端） |
+| Esc（Terminal） | Back |
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
-|---------|--------------|-----|
-| Not configured / empty overview | Missing URL or key | `mcsm config set-url` + `set-key` |
-| 401 / 403 | Bad or disabled API Key | Panel → user API Key; `mcsm auth status` |
-| Commands need daemon | No default node | `--daemon <id>` or `mcsm config set-daemon` |
-| Schedule add rejected | Interval `< 3` | Use `--time` ≥ 3 |
-| `mcsm` not found | PATH | Add `~/.local/bin` or Windows install dir |
+| 症状 | 处理 |
+|------|------|
+| 未配置 / overview 空 | `config set-url` + `set-key` |
+| 401 / 403 | 检查 Panel API Key；`auth status` |
+| 缺 daemon | `--daemon <id>` 或 `config set-daemon` |
+| schedule 被拒 | `--time` ≥ 3 |
+| `mcsm` not found | 装二进制并把 `~/.local/bin` 加 PATH |
 
-## References
-
-- Command tree & examples: [references/cli.md](references/cli.md)
-- Auth / config: [references/auth.md](references/auth.md)
-- Upstream panel: https://github.com/MCSManager/MCSManager
-- This client: https://github.com/CntierTeam/MCSManager-Client
+https://github.com/CntierTeam/MCSManager-Client

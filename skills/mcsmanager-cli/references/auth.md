@@ -1,5 +1,7 @@
 # Auth & config (product)
 
+Skill 为 execute-first 操作员代跑；本文件是鉴权/config 备查，不是替代 shell 执行。
+
 ## Preferred: API Key
 
 1. In MCSManager Panel, enable an API Key for your user.

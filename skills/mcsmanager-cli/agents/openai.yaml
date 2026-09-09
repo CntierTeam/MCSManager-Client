@@ -1,6 +1,6 @@
-display_name: MCSManager Client
-short_description: Use mcsm CLI/TUI to operate an MCSManager Panel
-default_prompt: >-
-  Follow the mcsmanager-cli skill for product usage of `mcsm` (install, config,
-  API Key, instances/files/terminal). Prefer CLI + --json. Do not treat this as
-  a Rust development guide.
+interface:
+  display_name: "MCSManager Client"
+  short_description: "代跑 mcsm：面板实例/文件/终端"
+  default_prompt: "按 $mcsmanager-cli 当操作员：用户要装 mcsm、配 Panel URL/API Key、管节点/实例开关机、文件、终端、用户、计划任务时，用 shell 直接跑 mcsm（优先 CLI + --json），不要只拼命令或 SAMPLE。缺 URL/Key/daemonId/uuid 再问一句然后继续跑。"
+policy:
+  allow_implicit_invocation: true
